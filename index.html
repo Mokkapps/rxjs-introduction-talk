@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+
+    <title>reveal.js</title>
+
+    <link rel="stylesheet" href="css/reveal.css" />
+    <link rel="stylesheet" href="css/theme/black.css" />
+
+    <!-- Theme used for syntax highlighting of code -->
+    <link rel="stylesheet" href="lib/css/zenburn.css" />
+
+    <!-- Printing and PDF exports -->
+    <script>
+      var link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.type = "text/css";
+      link.href = window.location.search.match(/print-pdf/gi)
+        ? "css/print/pdf.css"
+        : "css/print/paper.css";
+      document.getElementsByTagName("head")[0].appendChild(link);
+    </script>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section>
+		  <h2>RxJS Introduction</h2>
+		  <a href="https://www.mokkapps.de">by Michael Hoffmann (@Mokkapps)</a>
+        </section>
+
+        <section>
+          <h1>Agenda</h1>
+          <ul>
+            <li>Rx Introduction</li>
+            <li>RxJS Basics</li>
+            <li>Observable vs Promise</li>
+            <li>RxJS Testing</li>
+            <li>Observables in Angular</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>What is reactive programming?</h3>
+          <p>"Developing with asynchronous data streams"</p>
+        </section>
+
+        <section>
+          <h2>Reactive Extension (Rx)</h2>
+          <img data-src="reactivex.png" />
+        </section>
+
+        <section>
+          <h2>Rx combines the best ideas from</h2>
+          <ul>
+            <li>Iterator pattern</li>
+            <li>Functional programming</li>
+            <li>Observer pattern</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Observer & Observable</h2>
+          <section>
+            <img data-src="observer-observable.png" />
+            <p>Observable: "Event Producer"</p>
+            <p>Observer: "Event Observer"</p>
+          </section>
+          <section>
+            <img data-src="observer-observable-interaction.png" />
+          </section>
+        </section>
+
+        <section>
+          <h2>Hot vs. Cold Observable</h2>
+          <img
+            data-src="http://cdn.liginc.co.jp/wp-content/uploads/2015/03/cool_vs_hot.jpg"
+          />
+        </section>
+
+        <section>
+          <h2>Rx Marbles</h2>
+          <section><img width="80%" src="rxmarble.png" /></section>
+          <section>
+            <p>Interactive diagrams of Rx Observables</p>
+            <a href="http://www.rxmarbles.com">www.rxmarbles.com</a>
+            <img
+              data-src="https://codecraft.tv/assets/images/courses/angular/7.reactive-programming-with-rxjs/map-rxmarble.gif"
+            />
+          </section>
+        </section>
+
+        <section>
+			<section><h2>Defining Observers</h2></section>
+			<section>
+					<h2>Code Example</h2>
+					<pre><code data-trim data-noescape>
+						import { filter, map } from 'rxjs/operators';
+	
+						const obs = of(1, 2, 3, 4, 5)
+						// pipe different operations
+						.pipe(
+							filter(n => n % 2 !== 0),
+							map(n => n * n)
+							);
+	
+							// Subscribe to get values
+							obs.subscribe(
+								x => console.log(x),
+								err => console.error("An error occurred", err),
+								_ => console.log("Observable completed")
+								);
+					</code></pre>
+				</section>
+			<section>
+				<table style="font-size: 80%">
+					<tr>
+						<th>Notification Type</th>
+						<th>Description</th>
+					</tr>
+					<tr>
+						<td>next</td>
+						<td>Required. A handler for each delivered value. Called zero or more times after execution starts.</td>
+					</tr>
+					<tr>
+						<td>error</td>
+						<td>Optional. A handler for an error notification. An error halts execution of the observable instance.</td>
+					</tr>
+					<tr>
+						<td>complete</td>
+						<td>Optional. A handler for the execution-complete notification. Delayed values can continue to be delivered to the next handler after execution is complete.</td>
+					</tr>
+				</table>
+			</section>
+        </section>
+
+        <section>
+          <section><h2>Important Operators</h2></section>
+          <section>
+            <h2>switchMap</h2>
+            <p>
+              Typical usecase: HTTP request returns value which is needed for
+              following HTTP request
+            </p>
+            <p>
+              Example: Router ID includes an ID which we need for an HTTP method
+              call parameter
+            </p>
+            <p>
+              The switchMap operator also cancels previous in-flight requests
+            </p>
+            <pre><code data-trim data-noescape>
+				ngOnInit() {
+					this.hero$ = this.route.paramMap.pipe(
+					  switchMap((params: ParamMap) =>
+						this.service.getHero(params.get('id')))
+					);
+				}
+			</code></pre>
+          </section>
+          <section>
+            <ul>
+              <li>map() --> Similar to Array.map</li>
+              <li>filter() --> Similar to Array.filter</li>
+              <li>
+                combineLatest() --> Combines multiple Observables to create an
+                Observable whose values are calculated from the latest values of
+                each of its input Observables.
+              </li>
+              <li>
+                tap() --> Intercepts each emission on the source and runs a
+                function, but returns an output which is identical to the source
+                as long as errors don't occur.
+              </li>
+            </ul>
+          </section>
+          <section>
+            <h2>Creational Observable</h2>
+            <ul>
+              <li>of(1) --> Emits 1 and completes</li>
+              <li>from([1, 2, 3]) --> Emits 1, 2, 3 and then completes</li>
+              <li>empty() --> Completes directly (useful for tests/mocks)</li>
+            </ul>
+          </section>
+		</section>
+		
+		<section>
+				<section><h2>Subjects</h2></section>
+				<section><h2>Subjects are observer and observable at the same time</h2></section>
+				<section>			
+					<pre><code data-trim data-noescape>
+						import { Injectable } from '@angular/core';
+						import { Observable, BehaviorSubject } from 'rxjs';
+						
+						@Injectable({
+						  providedIn: 'root'
+						})
+						export class UserService {
+						  get user$(): Observable<string[]> {
+							return this.usersSubject.asObservable();
+						  }
+						  
+						  private users = [];
+						  private usersSubject: BehaviorSubject<string[]> = new BehaviorSubject(this.users);
+						
+						  constructor() {}
+						
+						  addUser(userName: string): void {
+							this.usersSubject.next([...this.users, userName]);
+						  }
+						}
+					</code></pre>
+				</section>
+			</section>
+
+        <section><h2>Observables compared to promises</h2></section>
+
+        <section>
+          <section>
+            <h3>Observable (Creation and subscription)</h3>
+            <p>Observables are not executed until a consumer subscribes</p>
+            <p>
+              The subscribe() executes the defined behavior once, and it can be
+              called again.
+            </p>
+            <pre><code data-trim data-noescape>
+				// declare a publishing operation
+				new Observable((observer) => { subscriber_fn });
+				// initiate execution
+				observable.subscribe(() => {
+					// observer handles notifications
+				});
+			</code></pre>
+          </section>
+          <section>
+            <h3>Promises (Creation and subscription)</h3>
+            <p>Promises execute immediately, and just once</p>
+            <p>
+              The computation of the result is initiated when the promise is
+              created
+            </p>
+            <p>There is no way to restart work</p>
+            <pre><code data-trim data-noescape>
+				// initiate execution
+				new Promise((resolve, reject) => { executer_fn });
+				// handle return value
+				promise.then((value) => {
+					// handle result here
+				});
+			</code></pre>
+          </section>
+        </section>
+
+        <section>
+          <section>
+            <h3>Observable Chaining</h3>
+            <p>
+              Observables differentiate between transformation function such as
+              a map and subscription
+            </p>
+            <p>
+              Only subscription activates the subscriber function to start
+              computing the values
+            </p>
+            <pre><code data-trim data-noescape>
+				// nothing happens until subscribe() is called
+				observable.map((v) => 2*v);
+			</code></pre>
+          </section>
+          <section>
+            <h3>Promises Chaining</h3>
+            <p>
+              Promises do not differentiate between the last .then clauses
+              (equivalent to subscription) and intermediate .then clauses
+              (equivalent to map).
+            </p>
+            <pre><code data-trim data-noescape>
+				promise.then((v) => 2*v);
+			</code></pre>
+          </section>
+        </section>
+
+        <section>
+          <section>
+            <h3>Observable Cancellation</h3>
+            <p>Observable subscriptions are cancellable</p>
+            <p>
+              Unsubscribing removes the listener from receiving further values,
+              and notifies the subscriber function to cancel work.
+            </p>
+            <pre><code data-trim data-noescape>
+				const sub: Subscription = obs.subscribe(...);
+				sub.unsubscribe();
+			</code></pre>
+          </section>
+          <section>
+            <h3>Promise Cancellation</h3>
+            <p>Promises are not cancellable</p>
+          </section>
+        </section>
+
+        <section>
+          <section>
+            <h3>Observable Error Handling</h3>
+            <p>
+              Observable execution errors are delivered to the subscriber's
+              error handler, and the subscriber automatically unsubscribes from
+              the observable.
+            </p>
+            <pre><code data-trim data-noescape>
+				obs.subscribe(() => {
+					throw Error('my error');
+				});
+			</code></pre>
+          </section>
+          <section>
+			<h3>Real World Example</h3>
+            <pre><code data-trim data-noescape>
+					import { ajax } from 'rxjs/ajax';
+					import { map, catchError, retry } from 'rxjs/operators';
+
+					// Return "response" from the API. If an error happens,
+					// return an empty array.
+					const apiData = ajax('/api/data').pipe(
+					  retry(3), // Retry up to 3 times before failing
+					  map(res => {
+						if (!res.response) {
+						  throw new Error('Value expected!');
+						}
+						return res.response;
+					  }),
+					  catchError(err => of([]))
+					);
+					
+					apiData.subscribe({
+					  next(x) { console.log('data: ', x); },
+					  error(err) { console.log('errors already caught... will not run'); }
+					});
+				</code></pre>
+          </section>
+          <section>
+            <h3>Promises Error Handling</h3>
+            <p>Promises push errors to the child promises.</p>
+            <pre><code data-trim data-noescape>
+				promise.then(() => {
+					throw Error('my error');
+				});
+			</code></pre>
+          </section>
+        </section>
+
+        <section>
+          <h2>Observable Event Example</h2>
+          <pre><code data-trim data-noescape>
+				// Setup
+				const clicks$ = fromEvent(buttonEl, ‘click’);
+
+				// Begin listening
+				const subscription = clicks$.subscribe(e => console.log(‘Clicked’, e));
+
+				// Stop listening
+				subscription.unsubscribe();
+			</code></pre>
+        </section>
+
+        <section>
+          <h3>Typeahead Example</h3>
+          <pre><code data-trim data-noescape>
+				import { fromEvent } from 'rxjs';
+				import { ajax } from 'rxjs/ajax';
+				import { map, filter, debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+				
+				const searchBox = document.getElementById('search-box');
+				
+				const typeahead = fromEvent(searchBox, 'input').pipe(
+				  map((e: KeyboardEvent) => e.target.value),
+				  filter(text => text.length > 2),
+				  debounceTime(10),
+				  distinctUntilChanged(),
+				  switchMap(() => ajax('/api/endpoint'))
+				);
+				
+				typeahead.subscribe(data => {
+				 // Handle the data from the API
+				});
+			</code></pre>
+        </section>
+
+        <section>
+          <h2>Angular HttpClient</h2>
+          <p>Returns observables from HTTP method calls</p>
+          <ul>
+            <li>Observables do not mutate the server response</li>
+            <li>
+              HTTP requests are cancellable through the unsubscribe() method
+            </li>
+            <li>Failed requests can be retried easily.</li>
+            <li>Complete automatically after each request</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Async Pipe</h2>
+          <p>
+            Subscribes to an observable or promise and returns the latest value
+            it has emitted
+          </p>
+          <p>Angular automatically unsubscribes if component is destroyed</p>
+          <pre><code data-trim data-noescape>
+				@Component({
+					selector: 'async-observable-pipe',
+					template: `<div>Time: {{ time | async }}</div>`
+				})
+				export class AsyncObservablePipeComponent {
+					time = new Observable(observer =>
+					  setInterval(() => observer.next(new Date().toString()), 1000)
+					);
+				}
+			</code></pre>
+        </section>
+
+        <section>
+          <h3>Other Angular Observables</h3>
+          <ul>
+            <li>
+              The Router and Forms modules use observables to listen for and
+              respond to user-input events
+            </li>
+            <li>The EventEmitter class extends Observable</li>
+          </ul>
+		</section>
+		
+		<section>
+			<h2>Naming Convention</h2>
+			<p>Due to TypeScript it is often clear if a variable is an observable</p>
+			<p>Often used to indicate observables: Trailing "$"</p>
+			<pre><code data-trim data-noescape>
+				stopwatchValue: number;
+				stopwatchValue$: Observable<number>;
+			</code></pre>
+		</section>
+
+		<section>
+			<h2>Testing Observables</h2>
+			<a href="https://www.mokkapps.de/blog/how-i-write-marble-tests-for-rxjs-observables-in-angular/">Checkout my blog post</a>
+		</section>
+
+      </div>
+    </div>
+
+    <script src="lib/js/head.min.js"></script>
+	<script src="js/reveal.js"></script>
+
+    <script>
+      // More info about config & dependencies:
+      // - https://github.com/hakimel/reveal.js#configuration
+      // - https://github.com/hakimel/reveal.js#dependencies
+      Reveal.initialize({
+        dependencies: [
+          { src: "plugin/markdown/marked.js" },
+          { src: "plugin/markdown/markdown.js" },
+          { src: "plugin/notes/notes.js", async: true },
+          {
+            src: "plugin/highlight/highlight.js",
+            async: true,
+            callback: function() {
+              hljs.initHighlightingOnLoad();
+            }
+          }
+        ]
+      });
+    </script>
+  </body>
+</html>
