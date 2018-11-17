@@ -40,8 +40,8 @@
             <li>Rx Introduction</li>
             <li>RxJS Basics</li>
             <li>Observable vs Promise</li>
-            <li>RxJS Testing</li>
             <li>Observables in Angular</li>
+            <li>RxJS Testing</li>
           </ul>
         </section>
 
@@ -405,26 +405,6 @@
         </section>
 
         <section>
-          <h2>Async Pipe</h2>
-          <p>
-            Subscribes to an observable or promise and returns the latest value
-            it has emitted
-          </p>
-          <p>Angular automatically unsubscribes if component is destroyed</p>
-          <pre><code data-trim data-noescape>
-				@Component({
-					selector: 'async-observable-pipe',
-					template: `<div>Time: {{ time | async }}</div>`
-				})
-				export class AsyncObservablePipeComponent {
-					time = new Observable(observer =>
-					  setInterval(() => observer.next(new Date().toString()), 1000)
-					);
-				}
-			</code></pre>
-        </section>
-
-        <section>
           <h3>Other Angular Observables</h3>
           <ul>
             <li>
@@ -443,12 +423,100 @@
 				stopwatchValue: number;
 				stopwatchValue$: Observable<number>;
 			</code></pre>
-		</section>
+    </section>
+    
+    <section>
+      <section>
+        <h2>Unsubscribing</h2>
+        <a href="https://mbrdar.github.io/angular-unsubscribe/">Demo</a>
+        </br>
+        <a style="font-size: 50%" href="https://blog.codecentric.de/en/2018/01/different-ways-unsubscribing-rxjs-observables-angular/"> Different ways of unsubscribing from RxJS Observables with Angular</a>
+      </section>
+      <section>
+        <p>Router and HTTP need no manual unsubscribe</p>
+        <p>For other observables we can use:</p>
+        <ul>
+          <li>unsubscribe over the subscription object</li>
+          <li>using takeUntil operator</li>
+          <li>using async pipe</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>unsubscribe over the subscription object</h2>
+        <pre><code data-trim data-noescape>
+            export class UnsubscribeComponent implements OnInit, OnDestroy {
+              subscription: Subscription | undefined;
+              constructor(private upperCaseService: UpperCaseService) {}
+             
+              ngOnInit() {
+                this.subscription = this.upperCaseService.getUpperCaseMessage()
+                  .subscribe((message: string) => this.message = message);
+              }
+             
+              ngOnDestroy(): void {
+                if (this.subscription) {
+                  this.subscription.unsubscribe();
+                }
+              }
+            }
+        </code></pre>
+      </section>
+
+      <section>
+          <h2>takeUntil operator</h2>
+          <pre><code data-trim data-noescape>
+              export class TakeUntilComponent implements OnInit, OnDestroy {
+                message: string;
+                private unsubscribe$ = new Subject();
+                constructor(private upperCaseService: UpperCaseService) {}
+               
+                ngOnInit() {
+                  this.upperCaseService.getUpperCaseMessage()
+                    .takeUntil(this.unsubscribe$)
+                    .subscribe((message: string) => this.message = message);
+                }
+               
+                ngOnDestroy(): void {
+                  this.unsubscribe$.next();
+                  this.unsubscribe$.complete();
+                }
+              }
+          </code></pre>
+        </section>
+
+      <section>
+          <h2>Async Pipe</h2>
+          <p>
+            Subscribes to an observable or promise and returns the latest value
+            it has emitted
+          </p>
+          <p>Angular automatically unsubscribes if component is destroyed</p>
+          <pre><code data-trim data-noescape>
+				@Component({
+					selector: 'async-observable-pipe',
+					template: `<div>Time: {{ time | async }}</div>`
+				})
+				export class AsyncObservablePipeComponent {
+					time = new Observable(observer =>
+					  setInterval(() => observer.next(new Date().toString()), 1000)
+					);
+				}
+			</code></pre>
+        </section>
+    </section>
 
 		<section>
-			<h2>Testing Observables</h2>
-			<a href="https://www.mokkapps.de/blog/how-i-write-marble-tests-for-rxjs-observables-in-angular/">Checkout my blog post</a>
+      <h2>Testing Observables</h2>
+      <a href="https://github.com/Mokkapps/rxjs-marble-testing-demo/tree/master/src">Demo Code</a>
+    </br>
+			<a style="font-size: 50%" href="https://www.mokkapps.de/blog/how-i-write-marble-tests-for-rxjs-observables-in-angular/">How I Write Marble Tests For RxJS Observables In Angular</a>
 		</section>
+
+    <section>
+      <h2>obs$.complete()</h2>
+      <img src="rxjs-meme.jpeg" alt="RxJS Meme">
+    </section>
 
       </div>
     </div>
